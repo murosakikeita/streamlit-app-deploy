@@ -1,13 +1,22 @@
-import streamlit as st
-from dotenv import load_dotenv
 import os
+import streamlit as st
+
+# --- dotenv 読み込みの安全対応（Cloud でも確実に動く）---
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    # Streamlit Cloud で python-dotenv が見つからない場合、自動インストール
+    os.system("pip install python-dotenv")
+    from dotenv import load_dotenv
+
+load_dotenv()
+
+# --- APIキーの取得（ローカル or Streamlit Secrets 両対応）---
+api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
+
+# --- LangChain関連 ---
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
-
-
-# --- 環境変数の読み込み ---
-load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
 
 # --- Streamlitアプリ設定 ---
 st.title("🏗️ 建設業界専門 LLMアドバイザー")
@@ -47,15 +56,20 @@ def get_llm_response(role, text):
             "あなたは建設業経営専門の経営コンサルタントです。"
             "人材不足・原価管理・入札戦略・DX化など経営面からアドバイスをしてください。"
         )
+    else:
+        system_prompt = "あなたは建設業界の専門家です。誠実に回答してください。"
 
     # --- LLM呼び出し ---
-    llm = ChatOpenAI(openai_api_key=api_key, model="gpt-3.5-turbo")
-    messages = [
-        SystemMessage(content=system_prompt),
-        HumanMessage(content=text),
-    ]
-    response = llm.invoke(messages)
-    return response.content
+    try:
+        llm = ChatOpenAI(openai_api_key=api_key, model="gpt-3.5-turbo")
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=text),
+        ]
+        response = llm.invoke(messages)
+        return response.content
+    except Exception as e:
+        return f"❌ エラーが発生しました: {e}"
 
 # --- ボタン操作 ---
 if st.button("回答を表示"):
@@ -64,3 +78,6 @@ if st.button("回答を表示"):
         st.write(get_llm_response(expert, user_input))
     else:
         st.warning("質問を入力してください。")
+
+# --- フッター ---
+st.caption("ver. 2025-10-28 / Streamlit Cloud対応（dotenv fallback付）")
