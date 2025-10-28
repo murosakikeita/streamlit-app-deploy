@@ -6,27 +6,29 @@ import openai
 api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
 openai.api_key = api_key
 
-# --- Streamlit アプリ設定 ---
+# --- アプリのヘッダー ---
 st.title("🏗️ 建設業界専門 LLMアドバイザー")
 st.write("""
 このアプリでは、建設業に特化した3タイプの専門AIがあなたの質問に答えます。  
-左のラジオボタンで専門領域を選び、質問を入力してください。
+AIが実際の専門家のように、役割に応じて異なる視点で回答します。
 """)
 
-# --- 専門家の種類を選択 ---
+# --- 専門家タイプ選択 ---
 expert = st.radio(
-    "相談したい専門家を選択してください：",
+    "👷‍♂️ 相談したい専門家を選択してください：",
     ("施工管理技士", "建築設計士", "建設経営コンサルタント")
 )
 
-# --- 入力フォーム ---
+# --- ユーザー入力欄 ---
 user_input = st.text_area("💬 質問を入力してください（例：現場の安全管理を改善したい など）")
 
-# --- ChatGPT API呼び出し関数 ---
+# --- 回答生成関数 ---
 def get_openai_response(role, text):
+    """OpenAI APIから専門家の役割に応じた回答を取得する"""
     if not api_key:
         return "⚠️ APIキーが設定されていません。"
 
+    # 役割に応じたシステムプロンプト
     if role == "施工管理技士":
         system_prompt = (
             "あなたは経験豊富な施工管理技士です。"
@@ -35,7 +37,7 @@ def get_openai_response(role, text):
     elif role == "建築設計士":
         system_prompt = (
             "あなたは優秀な建築設計士です。"
-            "設計・構造・法規・環境設計などの観点から、技術的で創造的な助言を行ってください。"
+            "構造・法規・環境設計など、技術的で創造的な助言を行ってください。"
         )
     else:
         system_prompt = (
@@ -52,16 +54,4 @@ def get_openai_response(role, text):
             ],
         )
         return completion.choices[0].message.content
-    except Exception as e:
-        return f"❌ エラーが発生しました: {e}"
-
-# --- ボタン操作 ---
-if st.button("回答を表示"):
-    if user_input.strip():
-        st.markdown("### 💡 回答：")
-        st.write(get_openai_response(expert, user_input))
-    else:
-        st.warning("質問を入力してください。")
-
-# --- フッター ---
-st.caption("ver. 2025-10-28 / LangChain非依存・安定稼働版")
+    except Exceptio
