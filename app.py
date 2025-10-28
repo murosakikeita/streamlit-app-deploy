@@ -1,22 +1,11 @@
 import os
 import streamlit as st
-
-# --- dotenv 読み込みの安全対応（Cloud でも確実に動く）---
-try:
-    from dotenv import load_dotenv
-except ImportError:
-    # Streamlit Cloud で python-dotenv が見つからない場合、自動インストール
-    os.system("pip install python-dotenv")
-    from dotenv import load_dotenv
-
-load_dotenv()
-
-# --- APIキーの取得（ローカル or Streamlit Secrets 両対応）---
-api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
-
-# --- LangChain関連 ---
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
+
+# --- OPENAI_API_KEY の取得（Cloud & ローカル両対応） ---
+# Cloud の場合は Secrets、ローカルでは環境変数を利用
+api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
 
 # --- Streamlitアプリ設定 ---
 st.title("🏗️ 建設業界専門 LLMアドバイザー")
@@ -80,4 +69,4 @@ if st.button("回答を表示"):
         st.warning("質問を入力してください。")
 
 # --- フッター ---
-st.caption("ver. 2025-10-28 / Streamlit Cloud対応（dotenv fallback付）")
+st.caption("ver. 2025-10-28 / dotenv除去版（Cloud最適化済）")
