@@ -1,5 +1,2 @@
 streamlit
-openai>=1.30
-langchain>=0.3.0
-langchain-openai>=0.1.0
---no-cache-dir
+openai>=1.30.0

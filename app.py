@@ -1,19 +1,19 @@
 import os
 import streamlit as st
-from langchain.chat_models import ChatOpenAI   # ← ここが決定的変更！
-from langchain.schema import SystemMessage, HumanMessage
+import openai
 
-# --- APIキー ---
+# --- APIキー設定 ---
 api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+openai.api_key = api_key
 
-# --- Streamlitアプリ設定 ---
+# --- Streamlit アプリ設定 ---
 st.title("🏗️ 建設業界専門 LLMアドバイザー")
 st.write("""
 このアプリでは、建設業に特化した3タイプの専門AIがあなたの質問に答えます。  
 左のラジオボタンで専門領域を選び、質問を入力してください。
 """)
 
-# --- 専門家選択 ---
+# --- 専門家の種類を選択 ---
 expert = st.radio(
     "相談したい専門家を選択してください：",
     ("施工管理技士", "建築設計士", "建設経営コンサルタント")
@@ -22,8 +22,8 @@ expert = st.radio(
 # --- 入力フォーム ---
 user_input = st.text_area("💬 質問を入力してください（例：現場の安全管理を改善したい など）")
 
-# --- LLM応答関数 ---
-def get_llm_response(role, text):
+# --- ChatGPT API呼び出し関数 ---
+def get_openai_response(role, text):
     if not api_key:
         return "⚠️ APIキーが設定されていません。"
 
@@ -44,22 +44,24 @@ def get_llm_response(role, text):
         )
 
     try:
-        llm = ChatOpenAI(openai_api_key=api_key, model="gpt-3.5-turbo")
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=text),
-        ]
-        response = llm.invoke(messages)
-        return response.content
+        completion = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": text},
+            ],
+        )
+        return completion.choices[0].message.content
     except Exception as e:
         return f"❌ エラーが発生しました: {e}"
 
-# --- ボタン処理 ---
+# --- ボタン操作 ---
 if st.button("回答を表示"):
     if user_input.strip():
         st.markdown("### 💡 回答：")
-        st.write(get_llm_response(expert, user_input))
+        st.write(get_openai_response(expert, user_input))
     else:
         st.warning("質問を入力してください。")
 
-st.caption("ver. 2025-10-28 / langchain.chat_models 互換版")
+# --- フッター ---
+st.caption("ver. 2025-10-28 / LangChain非依存・安定稼働版")
