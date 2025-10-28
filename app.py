@@ -45,6 +45,7 @@ def get_openai_response(role, text):
             "人材不足・原価管理・入札戦略・DX化など経営面からアドバイスをしてください。"
         )
 
+    # OpenAI呼び出し
     try:
         completion = openai.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -54,4 +55,18 @@ def get_openai_response(role, text):
             ],
         )
         return completion.choices[0].message.content
-    except Exceptio
+    except Exception as e:
+        return f"❌ エラーが発生しました: {e}"
+
+# --- ボタン操作 ---
+if st.button("🔍 回答を表示"):
+    if user_input.strip():
+        st.markdown("### 💡 回答：")
+        st.write(get_openai_response(expert, user_input))
+    else:
+        st.warning("質問を入力してください。")
+
+# --- フッター ---
+st.markdown("---")
+st.caption("© 2025 建設業界専門AIアドバイザー / OpenAI APIを活用したStreamlitアプリケーション")
+
